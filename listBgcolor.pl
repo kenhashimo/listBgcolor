@@ -7,7 +7,7 @@ use Win32::OLE;
 use lib '.';
 use listBgcolorFormat;
 
-  my ($wd, $fn, $ex, $bk);
+  my ($wd, $fn, $ex, $bk, %old);
 
   # カレントディレクトリを求める
   $wd =  Cwd::getcwd();
@@ -40,6 +40,8 @@ use listBgcolorFormat;
 
   $bk = $ex -> Workbooks -> Open($fn) or die $fn . ' を開けません';
 
+  %old = ();
+
   for (my $i = 1; my $sht = $bk -> Worksheets($i); $i ++) {
     my ($ur, $ny, $nx);
     $ur = $sht -> UsedRange;
@@ -47,13 +49,18 @@ use listBgcolorFormat;
 
     for (my $y = 1; $y <= $ny; $y ++) {
       for (my $x = 1; $x <= $nx; $x ++) {
-        my ($cell, $val, $in, $c, $ci, $bg);
+        my ($cell, $val, $in, $c, $key, $bg);
         $cell = $ur -> Cells($y, $x);
         $val = $cell -> {'Value'};
         next if (!defined($val) || $val eq '');
         $in = $cell -> Interior;
         next if ($in -> {'ColorIndex'} == -4142);  # 色なし
         $c = sprintf("%06x", $in -> {'Color'});
+
+        $key = $c . $val;
+        next if (defined($old{$key}));
+        $old{$key} = 1;
+
         $bg = substr($c, 4) . substr($c, 2, 2) . substr($c, 0, 2);
 
         print &format($val, $bg);
