@@ -1,30 +1,39 @@
-# ========== Excelƒtƒ@ƒCƒ‹‚ÌƒZƒ‹Fî•ñ‚ð’Šo ==========
+# ========== Excelãƒ•ã‚¡ã‚¤ãƒ«ã®ã‚»ãƒ«è‰²æƒ…å ±ã‚’æŠ½å‡º ==========
 
 use strict;
 use warnings;
-use Cwd;
+use utf8;
+use Win32::LongPath;
+use Encode;
 use Win32::OLE;
 use lib '.';
 use listBgcolorFormat;
 
   my ($wd, $fn, $ex, $bk, %old);
 
-  # ƒJƒŒƒ“ƒgƒfƒBƒŒƒNƒgƒŠ‚ð‹‚ß‚é
-  $wd =  Cwd::getcwd();
-  $wd =~ s/\//\\/g;
+  binmode STDOUT, ':crlf:encoding(cp932)';
+  binmode STDERR, ':crlf:encoding(cp932)';
+  binmode STDIN, ':crlf:encoding(cp932)';
+
+  # ã‚«ãƒ¬ãƒ³ãƒˆãƒ‡ã‚£ãƒ¬ã‚¯ãƒˆãƒªã‚’æ±‚ã‚ã‚‹
+  $wd =  getcwdL();
   $wd .= "\\" if (substr($wd, -1, 1) ne "\\");
 
   if (@ARGV == 1) {
-    $fn = $ARGV[0];
+    $fn = Encode::decode('cp932', $ARGV[0]);
   }
   else {
-    die 'Usage: ' . $0 . ' ƒtƒ@ƒCƒ‹–¼';
+    print STDERR 'Usage: ' . Encode::decode('cp932', $0) . " ãƒ•ã‚¡ã‚¤ãƒ«å\n";
+    exit 1;
   }
 
-  $ex = Win32::OLE -> new('Excel.Application', sub { $_[0] -> Quit; })
-    or die 'Excel‚ð‹N“®‚Å‚«‚Ü‚¹‚ñ';
+  unless ($ex = Win32::OLE ->
+      new('Excel.Application', sub { $_[0] -> Quit; })) {
+    print STDERR "Excelã‚’èµ·å‹•ã§ãã¾ã›ã‚“\n";
+    exit 1;
+  }
 
-  # ‘Š‘ÎƒpƒX‚ðâ‘ÎƒpƒX‚É•ÏŠ·
+  # ç›¸å¯¾ãƒ‘ã‚¹ã‚’çµ¶å¯¾ãƒ‘ã‚¹ã«å¤‰æ›
   if ($fn =~ /^[A-Za-z]:/) {
     ;
   }
@@ -32,13 +41,17 @@ use listBgcolorFormat;
     ;
   }
   elsif ($fn =~ /^\\/) {
-    die 'ƒtƒ@ƒCƒ‹–¼‚ÌŽw’è‚ª•s“KØ‚Å‚·';
+    print STDERR "ãƒ•ã‚¡ã‚¤ãƒ«åã®æŒ‡å®šãŒä¸é©åˆ‡ã§ã™\n";
+    exit 1;
   }
   else {
     $fn = $wd . $fn;
   }
 
-  $bk = $ex -> Workbooks -> Open($fn) or die $fn . ' ‚ðŠJ‚¯‚Ü‚¹‚ñ';
+  unless ($bk = $ex -> Workbooks -> Open(Encode::encode('cp932', $fn))) {
+    print STDERR $fn . " ã‚’é–‹ã‘ã¾ã›ã‚“\n";
+    exit 1;
+  }
 
   %old = ();
 
@@ -54,9 +67,10 @@ use listBgcolorFormat;
         $val = $cell -> {'Value'};
         next if (!defined($val) || $val eq '');
         $in = $cell -> Interior;
-        next if ($in -> {'ColorIndex'} == -4142);  # F‚È‚µ
+        next if ($in -> {'ColorIndex'} == -4142);  # è‰²ãªã—
         $c = sprintf("%06x", $in -> {'Color'});
 
+        $val = Encode::decode('cp932', $val);
         $key = $c . $val;
         next if (defined($old{$key}));
         $old{$key} = 1;

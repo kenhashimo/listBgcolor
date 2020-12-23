@@ -1,7 +1,8 @@
-# ========== listBgcolor.pl ‚Ìo—ÍƒtƒH[ƒ}ƒbƒgİ’è ==========
+# ========== listBgcolor.pl ã®å‡ºåŠ›ãƒ•ã‚©ãƒ¼ãƒãƒƒãƒˆè¨­å®š ==========
 
 use strict;
 use warnings;
+use utf8;
 
 sub format {
   my ($value, $color) = ($_[0], $_[1]);
